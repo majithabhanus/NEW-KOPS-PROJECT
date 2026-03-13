@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'master',
-                    url: 'https://github.com/majithabhanus/k8s-todo.git',
+                    url: 'https://github.com/majithabhanus/NEW-KOPS-PROJECT.git',
                     credentialsId: 'github-cred'
             }
         }
