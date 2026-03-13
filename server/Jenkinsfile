@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "majithas/go-todo"
-        K8S_DIR = "k8s"
+        K8S_DIR = "server/k8s"
     }
 
     stages {
