@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "majithas/go-todo"
+        FRONTEND_IMAGE = "majithas/todo-frontend"
+        BACKEND_IMAGE = "majithas/go-todo"
         K8S_DIR = "server/k8s"
     }
 
@@ -11,20 +12,28 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'master',
-                    url: 'https://github.com/majithabhanus/NEW-KOPS-PROJECT.git',
-                    credentialsId: 'github-cred'
+                url: 'https://github.com/majithabhanus/NEW-KOPS-PROJECT.git',
+                credentialsId: 'github-cred'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Backend Image') {
             steps {
-                script {
-                    docker.build("${IMAGE_NAME}:latest")
-                }
+                sh '''
+                docker build -t ${BACKEND_IMAGE}:latest ./server
+                '''
             }
         }
 
-        stage('Login to DockerHub') {
+        stage('Build Frontend Image') {
+            steps {
+                sh '''
+                docker build -t ${FRONTEND_IMAGE}:latest ./client
+                '''
+            }
+        }
+
+        stage('Login DockerHub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-cred-id',
@@ -38,22 +47,25 @@ pipeline {
             }
         }
 
-        stage('Push Image to DockerHub') {
+        stage('Push Images') {
             steps {
                 sh '''
-                docker push ${IMAGE_NAME}:latest
+                docker push ${BACKEND_IMAGE}:latest
+                docker push ${FRONTEND_IMAGE}:latest
                 '''
             }
         }
 
-    
-        stage('Deploy Kubernetes Manifests') {
+        stage('Deploy Kubernetes') {
             steps {
                 sh '''
                 kubectl apply -f ${K8S_DIR}/
                 '''
             }
         }
+
+    }
+}
 
         stage('Update Deployment Image') {
             steps {
