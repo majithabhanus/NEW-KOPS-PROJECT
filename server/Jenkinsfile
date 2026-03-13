@@ -46,25 +46,7 @@ pipeline {
             }
         }
 
-        stage('Setup kubeconfig for Jenkins') {
-            steps {
-                sh '''
-                sudo mkdir -p /var/lib/jenkins/.kube
-                sudo cp /home/ubuntu/.kube/config /var/lib/jenkins/.kube/config
-                sudo chown -R jenkins:jenkins /var/lib/jenkins/.kube
-
-                '''
-            }
-        }
-
-        stage('Verify Cluster Access') {
-            steps {
-                sh '''
-                kubectl get nodes
-                '''
-            }
-        }
-
+    
         stage('Deploy Kubernetes Manifests') {
             steps {
                 sh '''
