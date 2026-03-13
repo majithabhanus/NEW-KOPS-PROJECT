@@ -49,13 +49,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                kubectl apply -f ${K8S_DIR}/pv.yaml
-                kubectl apply -f ${K8S_DIR}/pvc.yaml
-                kubectl apply -f ${K8S_DIR}/mysql-secret.yaml
-                kubectl apply -f ${K8S_DIR}/mysql-deployment.yaml
-                kubectl apply -f ${K8S_DIR}/todo-configmap.yaml
-                kubectl apply -f ${K8S_DIR}/todo-deployment.yaml
-                kubectl apply -f ${K8S_DIR}/go-app-hpa.yaml
+                kubectl apply -f ${K8S_DIR}/
                 '''
             }
         }
