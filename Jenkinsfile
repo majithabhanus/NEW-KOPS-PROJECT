@@ -12,37 +12,31 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'master',
-                url: 'https://github.com/majithabhanus/NEW-KOPS-PROJECT.git',
-                credentialsId: 'github-cred'
-            }
-        }
-
-        stage('Build Backend Docker Image') {
-            steps {
-                sh '''
-                docker build -t ${BACKEND_IMAGE}:latest ./server
-                '''
+                    url: 'https://github.com/majithabhanus/NEW-KOPS-PROJECT.git',
+                    credentialsId: 'github-cred'
             }
         }
 
         stage('Build Frontend Docker Image') {
             steps {
-                sh '''
-                docker build -t ${FRONTEND_IMAGE}:latest ./ui
-                '''
+                sh 'docker build -t ${FRONTEND_IMAGE}:latest ./ui/src'
             }
         }
 
-        stage('Login to DockerHub') {
+        stage('Build Backend Docker Image') {
+            steps {
+                sh 'docker build -t ${BACKEND_IMAGE}:latest ./server/k8s'
+            }
+        }
+
+        stage('Login DockerHub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-cred-id',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    '''
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
         }
@@ -50,39 +44,32 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                 sh '''
-                docker push ${BACKEND_IMAGE}:latest
                 docker push ${FRONTEND_IMAGE}:latest
+                docker push ${BACKEND_IMAGE}:latest
                 '''
             }
         }
 
         stage('Deploy Kubernetes Manifests') {
             steps {
-                sh '''
-                kubectl apply -f ${K8S_DIR}/
-                '''
+                sh 'kubectl apply -f ${K8S_DIR}/'
             }
         }
 
         stage('Update Kubernetes Deployments') {
             steps {
                 sh '''
-                kubectl set image deployment/backend backend=${BACKEND_IMAGE}:latest --record || true
                 kubectl set image deployment/frontend frontend=${FRONTEND_IMAGE}:latest --record || true
+                kubectl set image deployment/backend backend=${BACKEND_IMAGE}:latest --record || true
                 '''
             }
         }
 
-        stage('Verify Kubernetes Deployment') {
+        stage('Verify Deployment') {
             steps {
                 sh '''
-                echo "Checking Pods"
                 kubectl get pods -o wide
-
-                echo "Checking Services"
                 kubectl get svc
-
-                echo "Checking Ingress"
                 kubectl get ingress
                 '''
             }
@@ -90,15 +77,12 @@ pipeline {
     }
 
     post {
-
         success {
-            echo "Application successfully deployed to Kubernetes"
+            echo "✅ Application successfully deployed to Kubernetes"
         }
-
         failure {
-            echo "Pipeline failed. Please check Jenkins logs."
+            echo "❌ Pipeline failed. Check logs."
         }
-
         always {
             echo "Pipeline execution finished."
         }
