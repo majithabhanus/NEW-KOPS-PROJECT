@@ -49,9 +49,10 @@ pipeline {
         stage('Setup kubeconfig for Jenkins') {
             steps {
                 sh '''
-                mkdir -p $HOME/.kube
-                sudo cp /home/ubuntu/.kube/config $HOME/.kube/config
-                sudo chown jenkins:jenkins $HOME/.kube/config
+                sudo mkdir -p /var/lib/jenkins/.kube
+                sudo cp /home/ubuntu/.kube/config /var/lib/jenkins/.kube/config
+                sudo chown -R jenkins:jenkins /var/lib/jenkins/.kube
+
                 '''
             }
         }
