@@ -11,15 +11,15 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'master',
-                url: 'https://github.com/majithabhanus/NEW-KOPS-PROJECT.git',
-                credentialsId: 'github-cred'
+                    url: 'https://github.com/majithabhanus/NEW-KOPS-PROJECT.git',
+                    credentialsId: 'github-cred'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${IMAGE_NAME}:latest")
+                    docker.build("${IMAGE_NAME}:latest")
                 }
             }
         }
@@ -46,7 +46,25 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Setup kubeconfig for Jenkins') {
+            steps {
+                sh '''
+                mkdir -p $HOME/.kube
+                sudo cp /home/ubuntu/.kube/config $HOME/.kube/config
+                sudo chown jenkins:jenkins $HOME/.kube/config
+                '''
+            }
+        }
+
+        stage('Verify Cluster Access') {
+            steps {
+                sh '''
+                kubectl get nodes
+                '''
+            }
+        }
+
+        stage('Deploy Kubernetes Manifests') {
             steps {
                 sh '''
                 kubectl apply -f ${K8S_DIR}/
@@ -57,7 +75,8 @@ pipeline {
         stage('Update Deployment Image') {
             steps {
                 sh '''
-                kubectl set image deployment/todo-app todo-app=${IMAGE_NAME}:latest
+                kubectl set image deployment/backend backend=${IMAGE_NAME}:latest || true
+                kubectl set image deployment/frontend frontend=${IMAGE_NAME}:latest || true
                 '''
             }
         }
@@ -66,7 +85,8 @@ pipeline {
             steps {
                 sh '''
                 kubectl get pods -o wide
-                kubectl get svc -o wide
+                kubectl get svc
+                kubectl get ingress
                 '''
             }
         }
