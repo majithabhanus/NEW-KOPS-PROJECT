@@ -8,7 +8,7 @@
 👉 Delete everything in todo-chart/values.yaml  
 
 
-# STEP 3: Delete default templates
+# STEP 3: Delete default templates .
 
    Helm creates junk files we don’t need.
 
