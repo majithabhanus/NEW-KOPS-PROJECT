@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_REGION  = 'ap-south-1'
-        CLUSTER_NAME = 'my-eks-cluster1'
+        CLUSTER_NAME = 'my-eks-cluster'
         IMAGE_NAME  = 'majithas/go-todo'
         K8S_DIR     = 'k8s'
     }
